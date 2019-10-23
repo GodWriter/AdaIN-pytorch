@@ -40,7 +40,9 @@ class Solver(object):
             content_image = next(content_iter).to(device)
             style_images = next(style_iter).to(device)
 
-            style_feats, content_feats = network(content_image, style_images)
+            # print("style_feats: ", content_image.shape)
+            # print("content_feats: ", style_images.shape)
 
-            print("style_feats: ", len(style_feats))
-            print("content_feats: ", len(content_feats))
+            t = network(content_image, style_images)
+
+            print("t: ", t.shape)

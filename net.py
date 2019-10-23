@@ -1,5 +1,7 @@
 import torch.nn as nn
 
+from function import adaptive_instance_normalization as adain
+
 
 decoder = nn.Sequential(
     nn.ReflectionPad2d((1, 1, 1, 1)),
@@ -125,4 +127,7 @@ class Net(nn.Module):
         style_feats = self.encode_with_intermediate(style)
         content_feat = self.encode(content)
 
-        return style_feats, content_feat
+        t = adain(content_feat, style_feats[-1])
+        t = alpha * t + (1 - alpha) * content_feat
+
+        return t

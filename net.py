@@ -107,7 +107,7 @@ class Net(nn.Module):
 
         for name in ['enc_1', 'enc_2', 'enc_3', 'enc_4']:
             for param in getattr(self, name).parameters():
-                param.required_grad = False
+                param.requires_grad = False
     
     def encode_with_intermediate(self, input):
         results = [input]
@@ -124,10 +124,16 @@ class Net(nn.Module):
 
     def forward(self, content, style, alpha=1.0):
         assert 0 <= alpha <= 1
+        # Get image features
         style_feats = self.encode_with_intermediate(style)
-        content_feat = self.encode(content)
+        content_feats = self.encode(content)
 
-        t = adain(content_feat, style_feats[-1])
-        t = alpha * t + (1 - alpha) * content_feat
+        # Compute AdaIN and output the image
+        t = adain(content_feats, style_feats[-1])
+        t = alpha * t + (1 - alpha) * content_feats
 
-        return t
+        # Output the image
+        g_t = self.decoder(t)
+        g_t_feats = self.encode_with_intermediate(g_t)
+
+        return t, g_t_feats, style_feats

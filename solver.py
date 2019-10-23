@@ -1,4 +1,5 @@
 import torch.utils.data as data
+import torch.nn as nn
 import torch
 
 import net
@@ -6,6 +7,7 @@ import net
 from config import *
 from tqdm import tqdm
 from dataloader import load_data
+from loss import calc_total_loss, adjust_learning_rate
 
 
 class Solver(object):
@@ -32,17 +34,29 @@ class Solver(object):
         # Get model
         vgg = net.vgg
         decoder = net.decoder
+
+        vgg.load_state_dict(torch.load(self.args.vgg))
+        vgg = nn.Sequential(*list(vgg.children())[:31])
+
         network = net.Net(vgg, decoder)
         network.train()
         network.to(device)
-        
+
+        # define optimizer
+        optimizer = torch.optim.Adam(network.decoder.parameters(), lr=self.args.lr)
+
         for i in tqdm(range(self.args.max_iter)):
+            adjust_learning_rate(self.args, optimizer, iteration_count=i)
+
             content_image = next(content_iter).to(device)
             style_images = next(style_iter).to(device)
+            
+            # Run the network and compute the loss
+            t_adain, g_t_feats, style_feats = network(content_image, style_images)
+            total_loss = calc_total_loss(self.args, t_adain, g_t_feats, style_feats)
 
-            # print("style_feats: ", content_image.shape)
-            # print("content_feats: ", style_images.shape)
+            optimizer.zero_grad()
+            total_loss.backward()
+            optimizer.step()
 
-            t = network(content_image, style_images)
-
-            print("t: ", t.shape)
+            print("total_loss: ", total_loss)

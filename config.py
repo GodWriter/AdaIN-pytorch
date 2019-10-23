@@ -19,7 +19,7 @@ def parse_args():
                         help='Directory to save the log')
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--lr_decay', type=float, default=5e-5)
-    parser.add_argument('--max_iter', type=int, default=1)
+    parser.add_argument('--max_iter', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--style_weight', type=float, default=10.0)
     parser.add_argument('--content_weight', type=float, default=1.0)

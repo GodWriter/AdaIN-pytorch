@@ -1,8 +1,11 @@
 import torch.utils.data as data
+import torch
+
+import net
 
 from config import *
 from tqdm import tqdm
-from dataloader import train_transform, FlatFolderDataset
+from dataloader import load_data
 
 
 class Solver(object):
@@ -10,22 +13,34 @@ class Solver(object):
         self.args = args
     
     def test_data(self):
-        contnet_tf = train_transform()
-        style_tf = train_transform()
+        content_iter, style_iter = load_data(self.args)
 
-        # define dataset
-        content_dataset = FlatFolderDataset(self.args.content_dir, contnet_tf)
-        style_dataset = FlatFolderDataset(self.args.style_dir, style_tf)
-
-        # define iteration
-        content_iter = iter(data.DataLoader(content_dataset,
-                                            batch_size=self.args.batch_size))
-        style_iter = iter(data.DataLoader(style_dataset,
-                                        batch_size=self.args.batch_size))
-        
         for i in tqdm(range(self.args.max_iter)):
             content_image = next(content_iter)
             style_images = next(style_iter)
 
             print("content_image: ", content_image.shape)
             print("style_image: ", style_images.shape)
+    
+    def train(self):
+        # Get device
+        device = torch.device('cuda')
+
+        # Get data iteration
+        content_iter, style_iter = load_data(self.args)
+
+        # Get model
+        vgg = net.vgg
+        decoder = net.decoder
+        network = net.Net(vgg, decoder)
+        network.train()
+        network.to(device)
+        
+        for i in tqdm(range(self.args.max_iter)):
+            content_image = next(content_iter).to(device)
+            style_images = next(style_iter).to(device)
+
+            style_feats, content_feats = network(content_image, style_images)
+
+            print("style_feats: ", len(style_feats))
+            print("content_feats: ", len(content_feats))

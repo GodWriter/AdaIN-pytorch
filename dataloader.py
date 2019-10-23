@@ -35,3 +35,18 @@ class FlatFolderDataset(data.Dataset):
         return 'FlatFolderDataset'
 
 
+def load_data(args):
+    contnet_tf = train_transform()
+    style_tf = train_transform()
+
+    # define dataset
+    content_dataset = FlatFolderDataset(args.content_dir, contnet_tf)
+    style_dataset = FlatFolderDataset(args.style_dir, style_tf)
+
+    # define iteration
+    content_iter = iter(data.DataLoader(content_dataset,
+                                        batch_size=args.batch_size))
+    style_iter = iter(data.DataLoader(style_dataset,
+                                    batch_size=args.batch_size))
+    
+    return content_iter, style_iter

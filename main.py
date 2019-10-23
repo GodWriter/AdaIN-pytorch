@@ -9,5 +9,7 @@ if __name__ == "__main__":
 
     if module == 'test_data':
         solver.test_data()
+    elif module == 'train':
+        solver.train()
     else:
         print("No this module!")

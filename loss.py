@@ -39,5 +39,5 @@ def calc_total_loss(args, t, g_t_feats, style_feats):
     loss_s = args.style_weight * loss_s
     total_loss = loss_c + loss_s
 
-    return total_loss
+    return loss_c, loss_s, total_loss
     

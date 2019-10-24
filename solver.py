@@ -5,8 +5,10 @@ import torch
 import net
 
 from config import *
+from pathlib import Path
 from tqdm import tqdm
 from dataloader import load_data
+from tensorboardX import SummaryWriter
 from loss import calc_total_loss, adjust_learning_rate
 
 
@@ -27,6 +29,15 @@ class Solver(object):
     def train(self):
         # Get device
         device = torch.device('cuda')
+
+        # Prepare directory
+        save_dir = Path(self.args.save_dir)
+        save_dir.mkdir(exist_ok=True, parents=True)
+        log_dir = Path(self.args.log_dir)
+        log_dir.mkdir(exist_ok=True, parents=True)
+
+        # Tensorboard visualization
+        writer = SummaryWriter(log_dir=str(log_dir))
 
         # Get data iteration
         content_iter, style_iter = load_data(self.args)
@@ -53,10 +64,19 @@ class Solver(object):
             
             # Run the network and compute the loss
             t_adain, g_t_feats, style_feats = network(content_image, style_images)
-            total_loss = calc_total_loss(self.args, t_adain, g_t_feats, style_feats)
+            loss_c, loss_s, total_loss = calc_total_loss(self.args, t_adain, g_t_feats, style_feats)
 
             optimizer.zero_grad()
             total_loss.backward()
             optimizer.step()
+            
+            # visual loss
+            writer.add_scalar('loss_content', loss_c.item(), i + 1)
+            writer.add_scalar('loss_style', loss_s.item(), i + 1)
 
-            print("total_loss: ", total_loss)
+            if (i+1) % self.args.save_model_interval == 0 or (i+1) == self.args.max_iter:
+                state_dict = net.decoder.state_dict()
+                for key in state_dict.keys():
+                    state_dict[key] = state_dict[key].to(torch.device('cpu'))
+                torch.save(state_dict, save_dir/'decoder_iter_{:d}.pth.tar'.format(i + 1))
+        writer.close()

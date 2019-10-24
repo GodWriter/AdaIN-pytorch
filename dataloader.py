@@ -4,6 +4,9 @@ from pathlib import Path
 from torchvision import transforms
 from PIL import Image, ImageFile
 
+# prevent bug
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
 
 def train_transform():
     transform_list = [

@@ -1,4 +1,7 @@
-input
 __pycache__
-vgg
+data
+experiments
+input
+logs
 models
+vgg

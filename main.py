@@ -11,5 +11,7 @@ if __name__ == "__main__":
         solver.test_data()
     elif module == 'train':
         solver.train()
+    elif module == 'test':
+        solver.test()
     else:
         print("No this module!")
